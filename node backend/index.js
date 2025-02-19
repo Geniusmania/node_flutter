@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const app = express();
+const fs = require('fs');
 const PORT = process.env.PORT || 3000;
 const jwt = require('jsonwebtoken');
 const path = require('path');
@@ -29,7 +30,24 @@ const storage = multer.diskStorage({
     }
 })
 
-
+// Update product
+app.put('/updateproduct/:id', async (req, res) => {
+    try {
+      const updatedProduct = await Product.findOneAndUpdate(
+        { id: req.params.id },
+        req.body,
+        { new: true, runValidators: true }
+      );
+      if (updatedProduct) {
+        res.json({ message: 'Product updated successfully', updatedProduct });
+      } else {
+        res.status(404).json({ message: 'Product not found' });
+      }
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
 
 
 //upload endpoint
@@ -46,7 +64,16 @@ app.post("/upload", upload.single('product'), (req, res) => {
         res.status(500).json({ message: error.message })
     }
 })
-
+app.get('/allimages', (req, res) => {
+    const directoryPath = path.join(__dirname, 'upload/images');
+    fs.readdir(directoryPath, (err, files) => {
+        if (err) {
+            return res.status(500).json({ message: 'Unable to scan files', error: err });
+        }
+        const fileUrls = files.map((file) => `${req.protocol}://${req.get('host')}/images/${file}`);
+        res.json(fileUrls);
+    });
+});
 
 //add products
 

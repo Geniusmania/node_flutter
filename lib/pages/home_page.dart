@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_shop/pages/all_products.dart';
 import 'package:flutter_shop/pages/create.dart';
-import 'package:flutter_shop/pages/delete.dart';
 import 'package:flutter_shop/pages/read.dart';
 import 'package:flutter_shop/pages/update.dart';
 
@@ -17,8 +17,8 @@ class HomePage extends StatelessWidget {
           children:[
             ElevatedButton(onPressed:(){Navigator.push(context, MaterialPageRoute(builder: (context)=>const Create()));}, child:const Text('create')),
             ElevatedButton(onPressed:(){Navigator.push(context, MaterialPageRoute(builder: (context)=>const Read()));}, child:const Text('Read')),
-            ElevatedButton(onPressed:(){Navigator.push(context, MaterialPageRoute(builder: (context)=>const Update()));}, child:const Text('Update')),
-            ElevatedButton(onPressed:(){Navigator.push(context, MaterialPageRoute(builder: (context)=>const Delete()));}, child:const Text('delete')),
+            ElevatedButton(onPressed:(){Navigator.push(context, MaterialPageRoute(builder: (context)=> ImageGallery()));}, child:const Text('Update')),
+           // ElevatedButton(onPressed:(){Navigator.push(context, MaterialPageRoute(builder: (context)=> const AllProducts()));}, child:const Text('delete')),
           ]
         ),
       )

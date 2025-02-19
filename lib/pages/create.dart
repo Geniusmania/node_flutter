@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_shop/utils/services.dart';
+import 'package:flutter_shop/utils/services.dart'; // Ensure addProduct function is imported
 
 class Create extends StatefulWidget {
   const Create({super.key});
@@ -9,63 +9,107 @@ class Create extends StatefulWidget {
 }
 
 class _CreateState extends State<Create> {
-  void _submit() {}
+  final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
+
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController categoryController = TextEditingController();
+  final TextEditingController oldPriceController = TextEditingController();
+  final TextEditingController newPriceController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController imageController = TextEditingController();
+Api _api = Api();
+  void _submit() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+      var data = {
+        'name': nameController.text,
+        'category': categoryController.text,
+        'old_price': double.tryParse(oldPriceController.text) ?? 0.0,
+        'new_price': double.tryParse(newPriceController.text) ?? 0.0,
+        'description': descriptionController.text,
+        'image': imageController.text,
+      };
+
+      try {
+        bool isAdded = await _api.addProductFromMap(data);
+        if (isAdded) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('✅ Product added successfully!')),
+          );
+          _clearFields();
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(' Error: $e')),
+        );
+      } finally {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _clearFields() {
+    nameController.clear();
+    categoryController.clear();
+    oldPriceController.clear();
+    newPriceController.clear();
+    descriptionController.clear();
+    imageController.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
-    TextEditingController nameController = TextEditingController();
-    TextEditingController categoryController = TextEditingController();
-    TextEditingController old_priceController = TextEditingController();
-    TextEditingController new_priceController = TextEditingController();
-    TextEditingController descriptionController = TextEditingController();
-    TextEditingController imageController = TextEditingController();
-
     return Scaffold(
-        body: Column(
-      children: [
-        TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-              isDense: true, hintText: 'name', border: OutlineInputBorder()),
+      appBar: AppBar(title: const Text('Create Product')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildTextField(nameController, 'Name', true),
+                _buildTextField(categoryController, 'Category', true),
+                _buildTextField(oldPriceController, 'Old Price', true, isNumber: true),
+                _buildTextField(newPriceController, 'New Price', true, isNumber: true),
+                _buildTextField(descriptionController, 'Description', true),
+                _buildTextField(imageController, 'Image URL', true),
+                const SizedBox(height: 20),
+                _isLoading
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: _submit,
+                        child: const Text('Submit'),
+                      ),
+              ],
+            ),
+          ),
         ),
-        TextField(
-          controller: categoryController,
-          decoration: const InputDecoration(
-              hintText: 'Category', border: OutlineInputBorder()),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, bool required, {bool isNumber = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
         ),
-        TextField(
-          controller: old_priceController,
-          decoration: const InputDecoration(
-              hintText: 'Old_price', border: OutlineInputBorder()),
-        ),
-        TextField(
-          controller: new_priceController,
-          decoration: const InputDecoration(
-              hintText: 'New_price', border: OutlineInputBorder()),
-        ),
-        TextField(
-          controller: descriptionController,
-          decoration: const InputDecoration(
-              hintText: 'description', border: OutlineInputBorder()),
-        ),
-        TextField(
-          controller: imageController,
-          decoration: const InputDecoration(
-              hintText: 'image', border: OutlineInputBorder()),
-        ),
-        ElevatedButton(
-            onPressed: () {
-              var data = {
-                'name': nameController.text,
-                'category': categoryController.text,
-                'old_price': old_priceController.text,
-                'new_price': new_priceController.text,
-                'description': descriptionController.text,
-                'image': imageController.text,
-              };
-             
-            },
-            child: const Text('submit')),
-      ],
-    ));
+        validator: (value) {
+          if (required && (value == null || value.isEmpty)) {
+            return ' $label is required';
+          }
+          if (isNumber && value != null && double.tryParse(value) == null) {
+            return ' Enter a valid number';
+          }
+          return null;
+        },
+      ),
+    );
   }
 }
